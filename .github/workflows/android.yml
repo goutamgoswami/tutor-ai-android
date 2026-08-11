@@ -19,17 +19,17 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Force Clean Package Manager Mirrors
+      - name: Fix Broken GitHub Runner Dependencies
         run: |
-          # Cleans up corrupt package data and forces Ubuntu to ignore broken third-party repo links
-          sudo rm -rf /var/lib/apt/lists/*
+          # Safely removes the pre-installed library causing the conflict
+          sudo apt-get remove -y libunwind-* || true
           sudo apt-get clean
-          sudo apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true || true
+          sudo apt-get update
 
       - name: Install System Dependencies
         run: |
-          # Uses target commands while ignoring broken external dependencies
-          sudo apt-get install -y --allow-unauthenticated git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake python3-venv libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+          # Re-runs the clean installation sequence successfully
+          sudo apt-get install -y --no-install-recommends git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake python3-venv libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
 
       - name: Install Buildozer and Cython
         run: |
