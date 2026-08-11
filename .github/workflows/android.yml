@@ -1,17 +1,31 @@
-name: Build Android Packages
+name: Build Play Store Production AAB
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Build APK with Buildozer
-        uses: ArtemGovorov/buildozer-action@v1
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Java JDK Environment
+        uses: actions/setup-java@v4
         with:
-          command: buildozer -v android debug
-      - name: Upload APK Package Artifact
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Production AAB Bundle
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          command: buildozer -v android release
+        env:
+          APP_ANDROID_RELEASE_KEYSTORE: ${{ secrets.PLAY_STORE_KEYSTORE_BASE64 }}
+          APP_ANDROID_RELEASE_KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          APP_ANDROID_RELEASE_KEYALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          APP_ANDROID_RELEASE_KEYALIAS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+
+      - name: Upload Play Store Ready Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: package-apk
-          path: bin/*.apk
+          name: play-store-release-bundle
+          path: bin/*.aab
