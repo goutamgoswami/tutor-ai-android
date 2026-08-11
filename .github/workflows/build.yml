@@ -11,29 +11,27 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Setup Python 3.11
+      - name: Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install Linux dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             git \
-            wget \
-            unzip \
             zip \
+            unzip \
             autoconf \
             automake \
             libtool \
@@ -49,72 +47,12 @@ jobs:
       - name: Install Buildozer
         run: |
           python -m pip install --upgrade pip
-          python -m pip install buildozer==1.6.0
-          python -m pip install cython==0.29.37
+          pip install buildozer==1.6.0
+          pip install cython==0.29.37
 
-      - name: Install Android SDK
-        shell: bash
-        run: |
-          SDK="$HOME/.buildozer/android/platform/android-sdk"
-
-          mkdir -p "$SDK/cmdline-tools"
-
-          wget -q \
-            "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
-            -O /tmp/cmdline-tools.zip
-
-          unzip -q \
-            /tmp/cmdline-tools.zip \
-            -d "$SDK/cmdline-tools"
-
-          mv \
-            "$SDK/cmdline-tools/cmdline-tools" \
-            "$SDK/cmdline-tools/latest"
-
-          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
-
-          echo "$SDK/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
-
-      - name: Install Android packages
-        shell: bash
-        run: |
-          SDK="$HOME/.buildozer/android/platform/android-sdk"
-
-          yes | sdkmanager --sdk_root="$SDK" --licenses || true
-
-          sdkmanager --sdk_root="$SDK" \
-            "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
-
-      - name: Verify Android SDK
-        shell: bash
-        run: |
-          SDK="$HOME/.buildozer/android/platform/android-sdk"
-
-          echo "ANDROID SDK:"
-          echo "$SDK"
-
-          echo "BUILD TOOLS:"
-          ls -lah "$SDK/build-tools"
-
-          echo "AIDL:"
-          find "$SDK/build-tools" -name aidl -type f
-
-          echo "AIDL VERSION:"
-          "$SDK/build-tools/34.0.0/aidl" --version
-
-      - name: Build Android AAB
+      - name: Build AAB
         run: |
           buildozer -v android release
-
-      - name: Show output
-        if: always()
-        run: |
-          ls -lah bin/ || true
-          find bin -type f -name "*.aab" -print || true
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
