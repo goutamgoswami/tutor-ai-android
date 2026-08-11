@@ -21,14 +21,12 @@ jobs:
 
       - name: Fix Broken GitHub Runner Dependencies
         run: |
-          # Safely removes the pre-installed library causing the conflict
           sudo apt-get remove -y libunwind-* || true
           sudo apt-get clean
           sudo apt-get update
 
       - name: Install System Dependencies
         run: |
-          # Re-runs the clean installation sequence successfully
           sudo apt-get install -y --no-install-recommends git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake python3-venv libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
 
       - name: Install Buildozer and Cython
@@ -36,9 +34,17 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython
 
+      - name: Pre-Accept Android SDK Licenses
+        run: |
+          # Creates the license directories manually and auto-signs Google conditions 
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo -e "244d2d04b411f5d6f00f41a3d3a35c82b6bbf946\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "851659a721777d0a4b3419b1b413e554d79e3797" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+
       - name: Build Production AAB Bundle
         run: |
-          buildozer -v android release
+          # Forces standard console inputs to always stream "yes" to SDKManager installations
+          yes | buildozer -v android release
         env:
           APP_ANDROID_RELEASE_KEYSTORE: ${{ secrets.PLAY_STORE_KEYSTORE_BASE64 }}
           APP_ANDROID_RELEASE_KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
