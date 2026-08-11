@@ -1,16 +1,31 @@
-name: Build Play Store Production AAB
+```yaml
+name: Build Alumni Tutor AI
 
 on:
-  push:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
+
   build:
-    runs-on: ubuntu-24.04
+
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout Repository
+
+      # --------------------------------------------------
+      # CHECKOUT
+      # --------------------------------------------------
+
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+
+      # --------------------------------------------------
+      # JAVA
+      # --------------------------------------------------
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -18,85 +33,125 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+
+      # --------------------------------------------------
+      # PYTHON
+      # --------------------------------------------------
+
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install System Dependencies
+
+      # --------------------------------------------------
+      # LINUX DEPENDENCIES
+      # --------------------------------------------------
+
+      - name: Install system dependencies
         run: |
+
           sudo apt-get update
+
           sudo apt-get install -y \
             git \
-            wget \
-            unzip \
             zip \
+            unzip \
+            wget \
             autoconf \
+            automake \
             libtool \
             pkg-config \
-            zlib1g-dev \
-            libncurses5-dev \
-            libssl-dev \
             cmake \
             libffi-dev \
+            libssl-dev \
+            zlib1g-dev \
+            libncurses5-dev \
+            libsqlite3-dev \
             libltdl-dev \
-            python3-venv \
-            libgstreamer1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good
+            gettext \
+            autopoint
 
-      - name: Install Android SDK Command Line Tools
-        run: |
-          mkdir -p "$ANDROID_HOME/cmdline-tools"
 
-          wget -q \
-            https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip \
-            -O /tmp/cmdline-tools.zip
-
-          unzip -q /tmp/cmdline-tools.zip \
-            -d "$ANDROID_HOME/cmdline-tools"
-
-          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" \
-             "$ANDROID_HOME/cmdline-tools/latest"
-
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
-          echo "$ANDROID_HOME/build-tools/35.0.0" >> "$GITHUB_PATH"
-
-      - name: Configure Android SDK
-        run: |
-          yes | sdkmanager --licenses || true
-
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
-
-      - name: Verify Android AIDL
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          which aidl || true
-          find "$ANDROID_HOME" -name aidl -type f
-
-          "$ANDROID_HOME/build-tools/35.0.0/aidl" --version
+      # --------------------------------------------------
+      # PYTHON BUILD ENVIRONMENT
+      # --------------------------------------------------
 
       - name: Install Buildozer
         run: |
+
           python -m pip install --upgrade pip
-          pip install "buildozer>=1.5.0" "cython<3"
 
-      - name: Build Production AAB
+          python -m pip install \
+            "buildozer==1.6.0" \
+            "cython==0.29.37"
+
+
+      # --------------------------------------------------
+      # SHOW ENVIRONMENT
+      # --------------------------------------------------
+
+      - name: Show build environment
         run: |
-          buildozer -v android release
-        env:
-          APP_ANDROID_RELEASE_KEYSTORE: ${{ secrets.PLAY_STORE_KEYSTORE_BASE64 }}
-          APP_ANDROID_RELEASE_KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
-          APP_ANDROID_RELEASE_KEYALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-          APP_ANDROID_RELEASE_KEYALIAS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
-      - name: Upload AAB
+          python --version
+          pip --version
+          buildozer --version
+          cython --version
+          java -version
+
+
+      # --------------------------------------------------
+      # CLEAN OLD BUILD
+      # --------------------------------------------------
+
+      - name: Clean Buildozer environment
+        run: |
+
+          rm -rf .buildozer
+          rm -rf bin
+
+
+      # --------------------------------------------------
+      # BUILD ANDROID AAB
+      # --------------------------------------------------
+
+      - name: Build Android App Bundle
+        run: |
+
+          buildozer -v android release
+
+
+      # --------------------------------------------------
+      # SHOW OUTPUT
+      # --------------------------------------------------
+
+      - name: Show generated files
+        if: always()
+        run: |
+
+          echo "======================================"
+          echo "BUILD OUTPUT"
+          echo "======================================"
+
+          ls -lah bin/ || true
+
+          echo ""
+          echo "======================================"
+          echo "AAB FILES"
+          echo "======================================"
+
+          find bin -type f -name "*.aab" -print || true
+
+
+      # --------------------------------------------------
+      # UPLOAD AAB
+      # --------------------------------------------------
+
+      - name: Upload Play Store AAB
         uses: actions/upload-artifact@v4
         with:
-          name: play-store-release-bundle
+          name: Alumni-Tutor-AI-AAB
           path: bin/*.aab
           if-no-files-found: error
+```
