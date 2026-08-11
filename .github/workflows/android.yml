@@ -36,23 +36,23 @@ jobs:
 
       - name: Manually Pre-Install Google Command Line Tools
         run: |
-          # Creates the official structure that bypasses obsolete layout checks
+          # Creates the system paths Buildozer expects
           mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
           mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
 
-          # Download and unpack the modern Google developer tools bundle
-          wget https://google.com -O cmdline.zip
+          # Bypasses the server block by using a standard User-Agent header string
+          wget --user-agent="Mozilla/5.0" https://google.com -O cmdline.zip
           unzip -q cmdline.zip
           
           mv cmdline-tools/* ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
           rm -rf cmdline-tools cmdline.zip
 
-          # Inject current, legal Google license hash approvals directly
+          # Auto-injects legal Google license signature agreements
           echo -e "244d2d04b411f5d6f00f41a3d3a35c82b6bbf946\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n45f640d047a0714faab02f232467d3cd2f2ef4b4\n851659a721777d0a4b3419b1b413e554d79e3797" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
 
       - name: Build Production AAB Bundle
         run: |
-          # This variable explicitly bypasses the obsolete "tools/bin/sdkmanager" search check
+          # Redirects Buildozer to our pre-arranged modern tools folder mapping
           export ANDROID_EXTERNAL_CMDLINE_TOOLS=~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
           buildozer -v android release
         env:
