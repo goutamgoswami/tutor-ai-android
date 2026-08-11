@@ -3,7 +3,7 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
@@ -14,10 +14,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build Production AAB Bundle
-        uses: ArtemSBulgakov/buildozer-action@v1
+      - name: Set Up Python Environment
+        uses: actions/setup-python@v5
         with:
-          command: buildozer -v android release
+          python-version: '3.11'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake python3-venv libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+
+      - name: Install Buildozer and Cython
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython
+
+      - name: Build Production AAB Bundle
+        run: |
+          buildozer -v android release
         env:
           APP_ANDROID_RELEASE_KEYSTORE: ${{ secrets.PLAY_STORE_KEYSTORE_BASE64 }}
           APP_ANDROID_RELEASE_KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
