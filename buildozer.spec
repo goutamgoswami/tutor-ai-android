@@ -19,14 +19,15 @@ android.permissions = INTERNET
 android.api = 34
 android.minapi = 21
 android.ndk_api = 21
-
 android.archs = arm64-v8a
 
 android.release_artifact = aab
 
+android.enable_androidx = True
+
 p4a.bootstrap = sdl2
 
-android.enable_androidx = True
+android.accept_sdk_license = True
 
 
 [buildozer]
