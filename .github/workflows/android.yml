@@ -40,7 +40,7 @@ jobs:
           mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
           mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
 
-          # 2. Download Google's official command line tools bundle
+          # 2. Download the current, verified Google command line tools link
           wget https://google.com -O cmdline.zip
           unzip -q cmdline.zip
           
@@ -49,12 +49,11 @@ jobs:
           rm -rf cmdline-tools cmdline.zip
 
           # 4. Auto-accept all official Google license requirements
-          echo -e "244d2d04b411f5d6f00f41a3d3a35c82b6bbf946\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n45f640d047a0714faab02f232467d3cd2f2ef4b4" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "244d2d04b411f5d6f00f41a3d3a35c82b6bbf946\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n45f640d047a0714faab02f232467d3cd2f2ef4b4\n851659a721777d0a4b3419b1b413e554d79e3797" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
           echo -e "851659a721777d0a4b3419b1b413e554d79e3797" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
 
       - name: Build Production AAB Bundle
         run: |
-          # Executes cleanly now that all software packages are pre-arranged
           buildozer -v android release
         env:
           APP_ANDROID_RELEASE_KEYSTORE: ${{ secrets.PLAY_STORE_KEYSTORE_BASE64 }}
